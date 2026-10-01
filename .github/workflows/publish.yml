@@ -1,0 +1,67 @@
+name: Publish to GitHub Packages
+
+# RELEASING = BUMPING THE VERSION IN YOUR PR, as in @max-health-inc/config. A merge whose
+# package.json version is already published publishes nothing and says so.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://npm.pkg.github.com
+          scope: '@max-health-inc'
+
+      - name: Test
+        run: npm test
+
+      - name: Is this version already published?
+        id: check
+        if: github.event_name != 'pull_request'
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          FOUND=$(npm view "$NAME@$VERSION" version --registry=https://npm.pkg.github.com 2>/dev/null || true)
+          if [ -n "$FOUND" ]; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "\`$NAME@$VERSION\` is already published. Bump the version in package.json to cut a release." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "Publishing \`$NAME@$VERSION\`" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Publish
+        if: github.event_name != 'pull_request' && steps.check.outputs.published == 'false'
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ github.token }}
+
+      - name: Tag the release
+        if: github.event_name != 'pull_request' && steps.check.outputs.published == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.check.outputs.version }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" >/dev/null 2>&1; then exit 0; fi
+          git tag "$TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" --title "$TAG" --generate-notes

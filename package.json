@@ -1,0 +1,30 @@
+{
+  "name": "@max-health-inc/ig-tools",
+  "version": "0.1.0",
+  "description": "Build tooling for the org's FHIR IG packages: resolve the BabelFHIR-TS release that passed parity, and compile an IG into a typed package.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Max-Health-Inc/ig-tools.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
+  },
+  "bin": {
+    "resolve-babelfhir": "./bin/resolve-babelfhir.js"
+  },
+  "files": ["src", "bin", "!src/*.test.js"],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test \"src/*.test.js\""
+  },
+  "license": "MIT"
+}
