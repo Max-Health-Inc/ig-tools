@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { compareVersions, disqualification, NoUsableGeneratorError, resolveGenerator } from './resolve-generator.js'
+import { compareVersions, DEFAULT_HISTORY_URL, disqualification, historySource, NoUsableGeneratorError, PRIVATE_HISTORY_URL, resolveGenerator } from './resolve-generator.js'
 
 const healthy = (version) => ({ version, packageCount: 30, internal: { validation: 72 }, firely: { validation: 84 }, hl7: { validation: 82 } })
 
@@ -66,5 +66,26 @@ describe('disqualification and compareVersions', () => {
   it('compares numerically, not as text', () => {
     assert.ok(compareVersions('1.6.10', '1.6.9') > 0)
     assert.equal(compareVersions('1.6.0', '1.6'), 0)
+  })
+})
+
+describe('historySource', () => {
+  it('reads the public report only for the public npmjs package', () => {
+    assert.deepEqual(historySource('babelfhir-ts', {}), { url: DEFAULT_HISTORY_URL, headers: {} })
+  })
+
+  it('reads the private history for @babelfhir-ts/codegen, authenticated', () => {
+    const source = historySource('@babelfhir-ts/codegen', { GH_PACKAGES_TOKEN: 't0ken' })
+    assert.equal(source.url, PRIVATE_HISTORY_URL)
+    assert.equal(source.headers.Authorization, 'Bearer t0ken')
+    assert.equal(source.headers.Accept, 'application/vnd.github.raw')
+  })
+
+  it('fails closed without a token instead of falling back to the public report', () => {
+    assert.throws(() => historySource('@babelfhir-ts/codegen', {}), /private parity history/)
+  })
+
+  it('lets an explicit history URL win, for a candidate history or a test double', () => {
+    assert.deepEqual(historySource('@babelfhir-ts/codegen', { PARITY_HISTORY_URL: 'https://x/h.json' }), { url: 'https://x/h.json', headers: {} })
   })
 })

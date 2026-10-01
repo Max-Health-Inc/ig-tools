@@ -25,8 +25,13 @@ export interface ParityEntry {
 export interface ResolveGeneratorOptions {
   /** Package to resolve. Default {@link DEFAULT_GENERATOR_PACKAGE} (`@babelfhir-ts/codegen`, GitHub Packages). */
   packageName?: string
-  /** Default: `PARITY_HISTORY_URL`, else {@link DEFAULT_HISTORY_URL}. */
+  /**
+   * Default: `PARITY_HISTORY_URL`; else the public report for `babelfhir-ts`, and the private history
+   * ({@link PRIVATE_HISTORY_URL}) for anything else, since the public report lists only npmjs releases.
+   */
   historyUrl?: string
+  /** Token for the private history. Default: PARITY_HISTORY_TOKEN, GH_PACKAGES_TOKEN, NODE_AUTH_TOKEN, GITHUB_TOKEN. */
+  historyToken?: string
   /** Oldest release the caller can build with at all. */
   minSupported?: string | null
   /** Optional floor (percent) on the lowest per-validator `validation` score. */
@@ -50,6 +55,16 @@ export interface ResolvedGenerator {
 export declare const DEFAULT_HISTORY_URL: string
 /** `@babelfhir-ts/codegen`, the org's generator on GitHub Packages. */
 export declare const DEFAULT_GENERATOR_PACKAGE: string
+/** `babelfhir-ts` on npmjs; the only package the public parity report covers. */
+export declare const PUBLIC_GENERATOR_PACKAGE: string
+/** The full stable history on BabelFHIR-TS's gh-pages branch, read through the GitHub API. */
+export declare const PRIVATE_HISTORY_URL: string
+/** Where a package's parity history lives and how to authenticate; throws when the private one has no token. */
+export declare function historySource(
+  packageName: string,
+  env: Record<string, string | undefined>,
+  overrides?: { historyUrl?: string; historyToken?: string },
+): { url: string; headers: Record<string, string> }
 export declare function isExactVersion(version: string): boolean
 /** Compare dotted numeric versions; positive when `a` is newer. */
 export declare function compareVersions(a: string, b: string): number

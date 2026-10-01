@@ -21,6 +21,12 @@ import { resolveGenerator } from '@max-health-inc/ig-tools'
 const { version } = await resolveGenerator()
 ```
 
+History source: the public parity report lists only releases minted on npmjs, so
+`babelfhir-ts` reads it and `@babelfhir-ts/codegen` reads the private history on BabelFHIR-TS's
+gh-pages branch through the GitHub API, with `PARITY_HISTORY_TOKEN` (else `GH_PACKAGES_TOKEN`,
+`NODE_AUTH_TOKEN`, `GITHUB_TOKEN`). Without a token it fails closed rather than fall back to the
+public report. `PARITY_HISTORY_URL` overrides both.
+
 Options: `packageName` (default `@babelfhir-ts/codegen`, the org's generator on GitHub Packages: map
 the `@babelfhir-ts` scope to `https://npm.pkg.github.com` with a token that can read it), `minSupported`, `minValidation` (a floor on the
 lowest per-validator validation score, off by default), `historyUrl` (default `PARITY_HISTORY_URL`,

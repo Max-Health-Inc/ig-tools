@@ -22,6 +22,38 @@ export const DEFAULT_HISTORY_URL = 'https://babelfhir-ts.github.io/parity-report
 /** The org's generator, on GitHub Packages; map the @babelfhir-ts scope there for npm view and npx. */
 export const DEFAULT_GENERATOR_PACKAGE = '@babelfhir-ts/codegen'
 
+/** The public generator on npmjs. Only its releases appear in the public parity report. */
+export const PUBLIC_GENERATOR_PACKAGE = 'babelfhir-ts'
+
+/**
+ * The full stable history, private releases included, on BabelFHIR-TS's gh-pages branch. The
+ * public report lists only releases minted on npmjs, so @babelfhir-ts/codegen must read this one.
+ */
+export const PRIVATE_HISTORY_URL = 'https://api.github.com/repos/babelfhir-ts/BabelFHIR-TS/contents/history-stable.json?ref=gh-pages'
+
+/**
+ * Where a package's parity history lives and how to authenticate. PARITY_HISTORY_URL overrides
+ * everything (a candidate history or a test double); the public package reads the public report;
+ * anything else reads the private history with a token that can read BabelFHIR-TS.
+ * @param {string} packageName
+ * @param {Record<string, string | undefined>} env
+ * @param {{ historyUrl?: string, historyToken?: string }} [overrides]
+ * @returns {{ url: string, headers: Record<string, string> }}
+ */
+export function historySource(packageName, env, overrides = {}) {
+  const explicit = overrides.historyUrl ?? (env.PARITY_HISTORY_URL?.trim() || undefined)
+  if (explicit) return { url: explicit, headers: {} }
+  if (packageName === PUBLIC_GENERATOR_PACKAGE) return { url: DEFAULT_HISTORY_URL, headers: {} }
+  const token = overrides.historyToken ?? env.PARITY_HISTORY_TOKEN ?? env.GH_PACKAGES_TOKEN ?? env.NODE_AUTH_TOKEN ?? env.GITHUB_TOKEN
+  if (!token) {
+    throw new Error(
+      `${packageName} is resolved from the private parity history (${PRIVATE_HISTORY_URL}), which needs a token that can read babelfhir-ts/BabelFHIR-TS. ` +
+        'Set PARITY_HISTORY_TOKEN (or GH_PACKAGES_TOKEN / NODE_AUTH_TOKEN / GITHUB_TOKEN). The public report lists only npmjs releases.',
+    )
+  }
+  return { url: PRIVATE_HISTORY_URL, headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.raw' } }
+}
+
 const VALIDATORS = ['internal', 'firely', 'hl7']
 
 /** @param {string} version */
@@ -110,7 +142,8 @@ function npmDeprecation(packageName, version) {
  */
 export async function resolveGenerator(options = {}) {
   const packageName = options.packageName ?? DEFAULT_GENERATOR_PACKAGE
-  const historyUrl = options.historyUrl ?? (process.env.PARITY_HISTORY_URL?.trim() || DEFAULT_HISTORY_URL)
+  const source = historySource(packageName, process.env, options)
+  const historyUrl = source.url
   const fetchFn = options.fetch ?? globalThis.fetch
   const publishedVersions = options.publishedVersions ?? npmPublishedVersions
   const deprecationOf = options.deprecationOf ?? npmDeprecation
@@ -118,7 +151,7 @@ export async function resolveGenerator(options = {}) {
   const rules = { minSupported: options.minSupported ?? null, minValidation: options.minValidation ?? null }
 
   log(`score floor: ${rules.minValidation === null ? 'disabled' : `${rules.minValidation}%`}`)
-  const res = await fetchFn(historyUrl, { headers: { 'cache-control': 'no-cache' } })
+  const res = await fetchFn(historyUrl, { headers: { 'cache-control': 'no-cache', ...source.headers } })
   if (!res.ok) throw new Error(`Cannot read stable parity history (${res.status} ${res.statusText}): ${historyUrl}`)
   /** @type {unknown} */
   const body = await res.json()
