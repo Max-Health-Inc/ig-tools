@@ -43,7 +43,10 @@ compileIg({
 ```
 
 Options: `igDir` (default `fhir`), `packageDir` (default `<igDir>/package`),
-`includeImplementationGuide` (default false), `sushi` (default `fsh-sushi@latest`).
+`includeImplementationGuide` (default false), `sushi` (default `fsh-sushi@latest`), and
+`manifest`: fields for the FHIR package's package.json (`fhirVersions`, `type`, `dependencies`).
+Name, version and canonical always come from sushi-config. With a manifest the staging dir is
+cleared first, so a deleted profile cannot linger in the package.
 
 ## Releasing
 
