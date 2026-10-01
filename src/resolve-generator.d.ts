@@ -23,7 +23,7 @@ export interface ParityEntry {
 }
 
 export interface ResolveGeneratorOptions {
-  /** npm package to resolve, e.g. `babelfhir-ts` (npmjs) or `@babelfhir-ts/codegen` (GitHub Packages). Default `babelfhir-ts`. */
+  /** Package to resolve. Default {@link DEFAULT_GENERATOR_PACKAGE} (`@babelfhir-ts/codegen`, GitHub Packages). */
   packageName?: string
   /** Default: `PARITY_HISTORY_URL`, else {@link DEFAULT_HISTORY_URL}. */
   historyUrl?: string
@@ -48,6 +48,8 @@ export interface ResolvedGenerator {
 }
 
 export declare const DEFAULT_HISTORY_URL: string
+/** `@babelfhir-ts/codegen`, the org's generator on GitHub Packages. */
+export declare const DEFAULT_GENERATOR_PACKAGE: string
 export declare function isExactVersion(version: string): boolean
 /** Compare dotted numeric versions; positive when `a` is newer. */
 export declare function compareVersions(a: string, b: string): number

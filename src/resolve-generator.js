@@ -19,6 +19,9 @@ import { execFileSync } from 'node:child_process'
 
 export const DEFAULT_HISTORY_URL = 'https://babelfhir-ts.github.io/parity-report/history-stable.json'
 
+/** The org's generator, on GitHub Packages; map the @babelfhir-ts scope there for npm view and npx. */
+export const DEFAULT_GENERATOR_PACKAGE = '@babelfhir-ts/codegen'
+
 const VALIDATORS = ['internal', 'firely', 'hl7']
 
 /** @param {string} version */
@@ -106,7 +109,7 @@ function npmDeprecation(packageName, version) {
  * @returns {Promise<import('./resolve-generator.js').ResolvedGenerator>}
  */
 export async function resolveGenerator(options = {}) {
-  const packageName = options.packageName ?? 'babelfhir-ts'
+  const packageName = options.packageName ?? DEFAULT_GENERATOR_PACKAGE
   const historyUrl = options.historyUrl ?? (process.env.PARITY_HISTORY_URL?.trim() || DEFAULT_HISTORY_URL)
   const fetchFn = options.fetch ?? globalThis.fetch
   const publishedVersions = options.publishedVersions ?? npmPublishedVersions

@@ -1,6 +1,6 @@
 {
   "name": "@max-health-inc/ig-tools",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Build tooling for the org's FHIR IG packages: resolve the BabelFHIR-TS release that passed parity, and compile an IG into a typed package.",
   "type": "module",
   "repository": {

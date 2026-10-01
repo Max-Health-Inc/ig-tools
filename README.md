@@ -12,16 +12,17 @@ Parity validates IG conformance, not that generated code compiles, so a deprecat
 1.6.4 was withdrawn) vetoes too. Fails closed when nothing qualifies.
 
 ```sh
-npx resolve-babelfhir --package @babelfhir-ts/codegen --min-supported 1.5.18 --explain
+npx resolve-babelfhir --min-supported 1.5.18 --explain
 ```
 
 ```js
 import { resolveGenerator } from '@max-health-inc/ig-tools'
 
-const { version } = await resolveGenerator({ packageName: 'babelfhir-ts' })
+const { version } = await resolveGenerator()
 ```
 
-Options: `packageName` (default `babelfhir-ts`), `minSupported`, `minValidation` (a floor on the
+Options: `packageName` (default `@babelfhir-ts/codegen`, the org's generator on GitHub Packages: map
+the `@babelfhir-ts` scope to `https://npm.pkg.github.com` with a token that can read it), `minSupported`, `minValidation` (a floor on the
 lowest per-validator validation score, off by default), `historyUrl` (default `PARITY_HISTORY_URL`,
 else BabelFHIR-TS's history-stable.json), and injectable `fetch` / `publishedVersions` /
 `deprecationOf` for tests.
@@ -37,7 +38,7 @@ import { compileIg, resolveGenerator } from '@max-health-inc/ig-tools'
 
 const { version } = await resolveGenerator()
 compileIg({
-  generator: { packageName: 'babelfhir-ts', version },
+  generator: { packageName: '@babelfhir-ts/codegen', version },
   generatorArgs: ['--fhir-version', 'r4', '--no-client', '--skip-install'],
 })
 ```
