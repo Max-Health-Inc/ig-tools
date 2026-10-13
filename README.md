@@ -51,9 +51,23 @@ compileIg({
 
 Options: `igDir` (default `fhir`), `packageDir` (default `<igDir>/package`),
 `includeImplementationGuide` (default false), `sushi` (default `fsh-sushi@latest`), and
-`manifest`: fields for the FHIR package's package.json (`fhirVersions`, `type`, `dependencies`).
-Name, version and canonical always come from sushi-config. With a manifest the staging dir is
-cleared first, so a deleted profile cannot linger in the package.
+`manifest`: fields for the FHIR package's package.json. Name, version and canonical always come
+from sushi-config; `fhirVersions` and `dependencies` from the ImplementationGuide resource SUSHI
+writes, so they are never restated. With a manifest the staging dir is cleared first, so a deleted
+profile cannot linger in the package.
+
+## Depend on another first-party IG
+
+FHIR tooling cannot read GitHub Packages, so an IG published only as `@max-health-inc/<x>-fhir`
+cannot be a SUSHI dependency by version. Instead:
+
+- The IG being depended on sets `embedFhirPackage: true`: its FHIR package ships inside the
+  generated npm package (`fhir-package/`, babelfhir-ts `--embed-fhir-package`).
+- The dependent IG adds that npm package as a devDependency and declares it in sushi-config as
+  `<id>: dev`. `compileIg` sees the `dev` dependency and runs `babelfhir-ts seed-cache` before SUSHI,
+  installing it into the FHIR cache as `<id>#dev`. The lockfile pins which build that is.
+
+`seedCache` forces the seed step on or off.
 
 ## Releasing
 
