@@ -112,8 +112,10 @@ export function compileIg(options) {
   const embed = options.embedFhirPackage ?? false
   const manifest = options.manifest ?? (embed ? { type: 'fhir.ig' } : undefined)
 
-  log('\n[1/4] Seeding first-party IG dependencies installed through npm (<id>#dev)')
-  babelfhir(options.generator, ['seed-cache'])
+  if (options.seedCache ?? hasDevDependency(readFileSync(join(igDir, 'sushi-config.yaml'), 'utf8'))) {
+    log('\n[1/4] Seeding first-party IG dependencies installed through npm (<id>#dev)')
+    babelfhir(options.generator, ['seed-cache'])
+  }
 
   log(`\n[2/4] SUSHI: ${id}@${version}`)
   run('npx', ['--yes', options.sushi ?? 'fsh-sushi@latest', igDir])
