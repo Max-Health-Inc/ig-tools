@@ -69,6 +69,26 @@ cannot be a SUSHI dependency by version. Instead:
 
 `seedCache` forces the seed step on or off.
 
+## Decide the release version
+
+Whether to publish a generated IG package, and as what. The npm version **follows the IG**: major.minor
+are the IG's own and the patch is the package's revision, as `@types/*` does with its upstream. So
+IG 0.2.0 publishes as 0.2.0, a generator-only rebuild as 0.2.1 (the IG version stays), and a raised
+IG version lands as itself rather than counting on from the last package.
+
+"Already published" is a `bk-<sha1>` dist-tag of the build key, because GitHub Packages drops custom
+package.json fields, so a hash stored in the manifest never reads back. The tag format is the one
+fhir-igs has always written. Each publish also gets `ig-<IG version>` and `babelfhir-<generator>`
+dist-tags, and takes `latest` only when it is newer than the current `latest`.
+
+```sh
+npx --yes --package @max-health-inc/ig-tools@^0.6.0 release-plan   --package @max-health-inc/core-fhir --ig-version 0.2.0   --build-key "fsh:<hash>|babelfhir@1.6.21|r4" --generator 1.6.21 >> "$GITHUB_OUTPUT"
+# publish=true  version=0.2.0  latest=true  tags=bk-… ig-0.2.0 babelfhir-1.6.21
+```
+
+The build key is everything the output depends on (IG source, generator version, flags); the same
+key never publishes twice. With two bins in this package, call each one through `--package`.
+
 ## Releasing
 
 Bump `version` in package.json; a merge to `main` publishes it to GitHub Packages and tags it.

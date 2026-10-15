@@ -1,7 +1,7 @@
 {
   "name": "@max-health-inc/ig-tools",
-  "version": "0.5.1",
-  "description": "Build tooling for the org's FHIR IG packages: resolve the BabelFHIR-TS release that passed parity, and compile an IG into a typed package.",
+  "version": "0.6.0",
+  "description": "Build tooling for the org's FHIR IG packages: resolve the BabelFHIR-TS release that passed parity, compile an IG into a typed package, and decide its release version.",
   "type": "module",
   "repository": {
     "type": "git",
@@ -17,9 +17,14 @@
     }
   },
   "bin": {
-    "resolve-babelfhir": "./bin/resolve-babelfhir.js"
+    "resolve-babelfhir": "./bin/resolve-babelfhir.js",
+    "release-plan": "./bin/release-plan.js"
   },
-  "files": ["src", "bin", "!src/*.test.js"],
+  "files": [
+    "src",
+    "bin",
+    "!src/*.test.js"
+  ],
   "engines": {
     "node": ">=20"
   },
